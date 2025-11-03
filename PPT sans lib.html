@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
+  <title>PPTX Architect - Standalone Edition</title>
+  <style>
+    /* ============================================
+       DESIGN SYSTEM
+    ============================================ */
+    :root {
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --accent: #4f46e5;
+      --accent-light: #818cf8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-light: #475569;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+      --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Courier New', monospace;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ============================================
+       LAYOUT
+    ============================================ */
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+        max-width: 900px;
+      }
+    }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(to right, var(--surface), rgba(14, 165, 233, 0.02));
+    }
+
+    .panel-title {
+      font-size: 18px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .panel-body {
+      padding: 24px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    /* ============================================
+       FORM ELEMENTS
+    ============================================ */
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .label-hint {
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 8px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s;
+      background: var(--surface);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    }
+
+    textarea {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      min-height: 200px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    textarea.prompt-area {
+      background: linear-gradient(to bottom, #faf5ff, var(--surface));
+      border: 2px solid var(--accent);
+    }
+
+    /* ============================================
+       BUTTONS
+    ============================================ */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+    }
+
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn-group .btn {
+      flex: 1;
+    }
+
+    /* ============================================
+       LAYOUT SELECTOR
+    ============================================ */
+    .layout-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .layout-card {
+      padding: 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      background: var(--surface);
+    }
+
+    .layout-card:hover {
+      border-color: var(--primary);
+      background: linear-gradient(to bottom, var(--surface), rgba(14, 165, 233, 0.03));
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .layout-card.active {
+      border-color: var(--accent);
+      background: linear-gradient(to bottom, rgba(79, 70, 229, 0.05), rgba(79, 70, 229, 0.02));
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .layout-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .layout-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .layout-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ============================================
+       PREVIEW AREA
+    ============================================ */
+    .preview-area {
+      background: linear-gradient(135deg, #1e293b, #334155);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 1;
+      min-height: 400px;
+    }
+
+    .preview-slide {
+      background: white;
+      aspect-ratio: 16/9;
+      width: 100%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .preview-slide:hover {
+      transform: scale(1.02);
+      box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+    }
+
+    .preview-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .slide-element {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      padding: 8px;
+    }
+
+    /* ============================================
+       SLIDE NAVIGATOR
+    ============================================ */
+    .slide-navigator {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .slide-thumb {
+      width: 50px;
+      height: 30px;
+      background: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .slide-thumb:hover {
+      border-color: var(--primary);
+      transform: scale(1.1);
+    }
+
+    .slide-thumb.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+      transform: scale(1.15);
+    }
+
+    /* ============================================
+       VALIDATION LOG
+    ============================================ */
+    .validation-log {
+      margin-top: 24px;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+    }
+
+    .log-entry {
+      padding: 10px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .log-icon {
+      font-size: 16px;
+    }
+
+    .log-success {
+      background: rgba(16, 185, 129, 0.05);
+      color: #065f46;
+    }
+
+    .log-error {
+      background: rgba(239, 68, 68, 0.05);
+      color: #991b1b;
+    }
+
+    .log-info {
+      background: rgba(14, 165, 233, 0.05);
+      color: #0c4a6e;
+    }
+
+    .log-warning {
+      background: rgba(245, 158, 11, 0.05);
+      color: #92400e;
+    }
+
+    /* ============================================
+       STATUS BADGES
+    ============================================ */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-left: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .status-ready {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    .status-loading {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    /* ============================================
+       STEP INDICATOR
+    ============================================ */
+    .steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      padding: 0 8px;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+      transition: all 0.3s;
+    }
+
+    .step.active .step-number {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .step.completed .step-number {
+      background: var(--success);
+      color: white;
+      border-color: var(--success);
+    }
+
+    .step-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .step.active .step-label {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* ============================================
+       UTILITIES
+    ============================================ */
+    .text-center {
+      text-align: center;
+    }
+
+    .text-muted {
+      color: var(--muted);
+    }
+
+    .text-small {
+      font-size: 12px;
+    }
+
+    .mt-2 {
+      margin-top: 8px;
+    }
+
+    .mt-3 {
+      margin-top: 12px;
+    }
+
+    .mt-4 {
+      margin-top: 16px;
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* ============================================
+       ANIMATIONS
+    ============================================ */
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .slide-in {
+      animation: slideIn 0.3s ease;
+    }
+
+    /* ============================================
+       LOADING SPINNER
+    ============================================ */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ============================================
+       RESPONSIVE
+    ============================================ */
+    @media (max-width: 768px) {
+      .container {
+        padding: 16px;
+      }
+
+      .panel-header {
+        padding: 16px;
+      }
+
+      .panel-body {
+        padding: 16px;
+      }
+
+      .layout-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .steps {
+        flex-wrap: wrap;
+      }
+
+      .step-label {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Left Panel: Control Center -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">
+            🚀 Centre de Contrôle
+            <span class="status-badge status-loading" id="lib-status">Initialisation...</span>
+          </h2>
+          <p class="panel-subtitle">Générateur de présentations PowerPoint avec IA</p>
+        </div>
+      </div>
+      <div class="panel-body">
+        <!-- Step Indicator -->
+        <div class="steps">
+          <div class="step active" id="step-1">
+            <div class="step-number">1</div>
+            <div class="step-label">Configuration</div>
+          </div>
+          <div class="step" id="step-2">
+            <div class="step-number">2</div>
+            <div class="step-label">Prompt IA</div>
+          </div>
+          <div class="step" id="step-3">
+            <div class="step-number">3</div>
+            <div class="step-label">Parsing</div>
+          </div>
+          <div class="step" id="step-4">
+            <div class="step-number">4</div>
+            <div class="step-label">Génération</div>
+          </div>
+        </div>
+
+        <!-- Step 1: Configuration -->
+        <div class="form-group">
+          <label>1. Choisir le Style Visuel</label>
+          <div class="layout-grid">
+            <div class="layout-card active" data-layout="corporate" onclick="selectLayout('corporate')">
+              <div class="layout-icon">🏢</div>
+              <div class="layout-name">Corporate</div>
+              <div class="layout-desc">Professionnel & Formel</div>
+            </div>
+            <div class="layout-card" data-layout="modern" onclick="selectLayout('modern')">
+              <div class="layout-icon">✨</div>
+              <div class="layout-name">Modern</div>
+              <div class="layout-desc">Épuré & Contemporain</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Sujet de la Présentation</label>
+          <input 
+            type="text" 
+            id="topic" 
+            placeholder="Ex: Intelligence Artificielle et Productivité en Entreprise"
+            oninput="buildPrompt()"
+          >
+        </div>
+
+        <div class="form-group">
+          <label>Nombre de Slides</label>
+          <input 
+            type="number" 
+            id="slide-count" 
+            value="5" 
+            min="3" 
+            max="10"
+            oninput="buildPrompt()"
+          >
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Step 2: AI Prompt -->
+        <div class="form-group">
+          <label>
+            2. Prompt Optimisé pour l'IA
+            <span class="label-hint">(Copier dans Claude, ChatGPT, ou Gemini)</span>
+          </label>
+          <textarea 
+            id="final-prompt" 
+            class="prompt-area" 
+            rows="12" 
+            readonly
+            placeholder="Le prompt sera généré automatiquement..."
+          ></textarea>
+          <button class="btn btn-primary" onclick="copyPrompt()" style="width:100%; margin-top:12px;">
+            📋 Copier le Prompt
+          </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Step 3: AI Output -->
+        <div class="form-group">
+          <label>
+            3. Coller le JSON Généré par l'IA
+            <span class="label-hint">(Format JSON pur uniquement)</span>
+          </label>
+          <textarea 
+            id="ai-output" 
+            rows="10" 
+            placeholder='Collez ici le JSON généré par l\'IA, par exemple:
+{
+  "slides": [
+    {
+      "masterName": "MASTER_LAYOUT",
+      "elements": [...]
+    }
+  ]
+}'
+          ></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="btn-group">
+          <button class="btn btn-accent" onclick="parseAndValidate()">
+            🔍 Analyser & Valider
+          </button>
+          <button class="btn btn-success" onclick="generatePPTX()" id="generate-btn" disabled>
+            💾 Générer le PPTX
+          </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-4 text-center">
+          <button class="btn btn-secondary" onclick="loadExample()">
+            📝 Charger un Exemple
+          </button>
+          <button class="btn btn-secondary" onclick="clearAll()">
+            🔄 Réinitialiser
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Preview & Validation -->
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">
+            👁️ Aperçu & Validation
+            <span class="status-badge" id="preview-status"></span>
+          </h2>
+          <p class="panel-subtitle">Visualisation en temps réel de votre présentation</p>
+        </div>
+      </div>
+      <div class="panel-body">
+        <!-- Preview Area -->
+        <div class="preview-area">
+          <div class="preview-slide" id="preview-slide">
+            <div class="preview-empty">
+              <div>
+                <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                <div style="color: #94a3b8;">
+                  Votre présentation apparaîtra ici<br>
+                  <span style="font-size: 12px;">Format 16:9 • PowerPoint natif</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-navigator" id="slide-navigator"></div>
+        </div>
+
+        <!-- Validation Log -->
+        <div class="validation-log" id="validation-log">
+          <div class="log-entry log-info">
+            <span class="log-icon">ℹ️</span>
+            <span>Système prêt. En attente de contenu...</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="mt-4" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+          <div style="text-align: center; padding: 12px; background: var(--bg); border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--primary);" id="stat-slides">0</div>
+            <div style="font-size: 11px; color: var(--muted);">Slides</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background: var(--bg); border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--accent);" id="stat-elements">0</div>
+            <div style="font-size: 11px; color: var(--muted);">Éléments</div>
+          </div>
+          <div style="text-align: center; padding: 12px; background: var(--bg); border-radius: 8px;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--success);" id="stat-ready">❌</div>
+            <div style="font-size: 11px; color: var(--muted);">Prêt</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================
+       PPTXGENJS LIBRARY INTEGRATION
+       ============================================
+       
+       INSTRUCTIONS D'INTÉGRATION:
+       
+       1. Téléchargez le bundle PptxGenJS depuis:
+          https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js
+          
+       2. Ouvrez le fichier téléchargé dans un éditeur de texte
+       
+       3. Copiez TOUT le contenu du fichier (environ 300KB de code minifié)
+       
+       4. Collez-le entre les balises <script> ci-dessous, en remplaçant
+          le commentaire "COLLER ICI LE CONTENU DE PPTXGEN.BUNDLE.JS"
+       
+       5. Sauvegardez ce fichier HTML
+       
+       6. Ouvrez-le dans votre navigateur - il fonctionnera 100% offline !
+       
+  ============================================ -->
+  
+  <script>
+    // ============================================
+    // DÉBUT DE LA ZONE D'INTÉGRATION PPTXGENJS
+    // ============================================
+    
+    // COLLER ICI LE CONTENU DE PPTXGEN.BUNDLE.JS
+    // (Le fichier minifié complet fait environ 300KB)
+    
+    // ============================================
+    // FIN DE LA ZONE D'INTÉGRATION PPTXGENJS
+    // ============================================
+  </script>
+
+  <!-- ============================================
+       APPLICATION CORE LOGIC
+  ============================================ -->
+  <script>
+    // ============================================
+    // CONFIGURATION & CONSTANTS
+    // ============================================
+    
+    const APP_VERSION = '1.0.0';
+    const APP_NAME = 'PPTX Architect Standalone';
+    
+    // Layout Configurations
+    const LAYOUTS = {
+      corporate: {
+        name: 'Corporate',
+        theme: {
+          primary: '003366',
+          secondary: 'FF6600',
+          accent: 'E8F4FD',
+          text: '333333',
+          background: 'FFFFFF'
+        },
+        font: 'Calibri',
+        master: {
+          background: { color: 'FFFFFF' },
+          objects: [
+            { 
+              rect: { 
+                x: 0, 
+                y: '92%', 
+                w: '100%', 
+                h: '8%', 
+                fill: { color: '003366' } 
+              } 
+            },
+            {
+              line: {
+                x: 0,
+                y: '91.5%',
+                w: '100%',
+                h: 0,
+                line: { color: 'FF6600', width: 2 }
+              }
+            }
+          ],
+          slideNumber: { 
+            x: '5%', 
+            y: '94%', 
+            color: 'FFFFFF', 
+            fontSize: 10,
+            fontFace: 'Calibri'
+          },
+          footer: {
+            x: '50%',
+            y: '94%',
+            w: '40%',
+            h: '4%',
+            align: 'center',
+            color: 'FFFFFF',
+            fontSize: 10
+          }
+        }
+      },
+      modern: {
+        name: 'Modern',
+        theme: {
+          primary: '1e3a8a',
+          secondary: 'ea580c',
+          accent: 'fef3c7',
+          text: '111827',
+          background: 'f9fafb'
+        },
+        font: 'Helvetica',
+        master: {
+          background: { color: 'f9fafb' },
+          objects: [
+            {
+              line: {
+                x: '5%',
+                y: '95%',
+                w: '90%',
+                h: 0,
+                line: { color: '1e3a8a', width: 2, dashType: 'dash' }
+              }
+            }
+          ],
+          slideNumber: {
+            x: '92%',
+            y: '5%',
+            color: '64748b',
+            fontSize: 10,
+            fontFace: 'Helvetica'
+          }
+        }
+      }
+    };
+
+    // Master Prompt Template
+    const MASTER_PROMPT_TEMPLATE = `Tu es un générateur de spécifications JSON pour la bibliothèque PptxGenJS.
+Ta mission est de produire UNIQUEMENT un objet JSON valide, sans aucun texte, commentaire ou explication.
+
+[CONTEXTE DE LA PRÉSENTATION]
+- Sujet: {TOPIC}
+- Style visuel: {LAYOUT_NAME}
+- Police principale: {FONT}
+- Palette de couleurs:
+  * Couleur primaire: #{PRIMARY_COLOR}
+  * Couleur secondaire: #{SECONDARY_COLOR}
+  * Couleur d'accent: #{ACCENT_COLOR}
+  * Couleur de texte: #{TEXT_COLOR}
+- Nombre de slides à générer: {SLIDE_COUNT}
+
+[FORMAT DE SORTIE OBLIGATOIRE]
+Tu dois produire un objet JSON avec la structure exacte suivante:
+
+{
+  "slides": [
+    {
+      "masterName": "MASTER_LAYOUT",
+      "elements": [
+        {
+          "type": "text",
+          "content": "Contenu textuel ou tableau d'objets pour listes",
+          "options": {
+            "x": "10%",
+            "y": "20%", 
+            "w": "80%",
+            "h": "15%",
+            "fontSize": 36,
+            "bold": true,
+            "align": "center",
+            "color": "HEX_COLOR",
+            "fontFace": "FONT_NAME"
+          }
+        },
+        {
+          "type": "shape",
+          "shape": "rect",
+          "options": {
+            "x": "5%",
+            "y": "85%",
+            "w": "90%",
+            "h": "10%",
+            "fill": { "color": "HEX_COLOR", "transparency": 20 }
+          }
+        }
+      ]
+    }
+  ]
+}
+
+[RÈGLES TECHNIQUES STRICTES]
+1. Coordonnées (x, y, w, h): Utilise des pourcentages (string avec %) ou des nombres (0-10 pour inches)
+2. Couleurs: Chaînes HEX de 6 caractères SANS le symbole #
+3. fontSize: Nombres entiers (12, 18, 24, 36, 44, etc.)
+4. Police (fontFace): Utilise "{FONT}"
+5. Alignement (align): "left", "center", ou "right"
+6. Pour les listes à puces, utilise ce format:
+   "content": [
+     {"text": "Premier point", "options": {"bullet": true}},
+     {"text": "Deuxième point", "options": {"bullet": true}},
+     {"text": "Sous-point", "options": {"bullet": true, "indentLevel": 1}}
+   ]
+
+[STRUCTURE RECOMMANDÉE DES SLIDES]
+1. Slide de titre (type: title)
+2. Slide d'agenda ou sommaire (type: bullets)
+3-{SLIDE_COUNT_MINUS_ONE}. Slides de contenu variées
+{SLIDE_COUNT}. Slide de conclusion
+
+[ÉLÉMENTS À UTILISER]
+- text: Pour titres, sous-titres, paragraphes et listes
+- shape: Pour rectangles décoratifs, lignes de séparation
+- Ne génère PAS d'images (elles seront ajoutées manuellement si besoin)
+
+[COULEURS À UTILISER]
+- Titres principaux: {PRIMARY_COLOR}
+- Sous-titres: {SECONDARY_COLOR}
+- Texte normal: {TEXT_COLOR}
+- Éléments décoratifs: {ACCENT_COLOR} avec transparency
+
+Génère maintenant exactement {SLIDE_COUNT} slides sur le sujet: "{TOPIC}"`;
+
+    // ============================================
+    // GLOBAL STATE
+    // ============================================
+    
+    let presentationState = null;
+    let currentLayout = 'corporate';
+    let currentSlideIndex = 0;
+    let isLibraryLoaded = false;
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      initializeApp();
+    });
+
+    function initializeApp() {
+      // Check if PptxGenJS is loaded
+      checkLibraryStatus();
+      
+      // Build initial prompt
+      buildPrompt();
+      
+      // Restore saved state if exists
+      restoreState();
+      
+      // Set up auto-save
+      setupAutoSave();
+      
+      logMessage('✅ Application initialisée avec succès', 'success');
+    }
+
+    function checkLibraryStatus() {
+      if (typeof PptxGenJS !== 'undefined') {
+        isLibraryLoaded = true;
+        document.getElementById('lib-status').textContent = 'PptxGenJS OK';
+        document.getElementById('lib-status').className = 'status-badge status-ready';
+      } else {
+        isLibraryLoaded = false;
+        document.getElementById('lib-status').textContent = 'Lib Manquante';
+        document.getElementById('lib-status').className = 'status-badge status-error';
+        logMessage('⚠️ PptxGenJS non détecté. Veuillez intégrer la bibliothèque.', 'warning');
+      }
+    }
+
+    // ============================================
+    // PROMPT GENERATION
+    // ============================================
+    
+    function buildPrompt() {
+      const topic = document.getElementById('topic').value || '[Sujet non défini]';
+      const slideCount = document.getElementById('slide-count').value || 5;
+      const config = LAYOUTS[currentLayout];
+      
+      let prompt = MASTER_PROMPT_TEMPLATE;
+      
+      // Replace all variables
+      prompt = prompt.replace(/{TOPIC}/g, topic);
+      prompt = prompt.replace(/{LAYOUT_NAME}/g, config.name);
+      prompt = prompt.replace(/{FONT}/g, config.font);
+      prompt = prompt.replace(/{PRIMARY_COLOR}/g, config.theme.primary);
+      prompt = prompt.replace(/{SECONDARY_COLOR}/g, config.theme.secondary);
+      prompt = prompt.replace(/{ACCENT_COLOR}/g, config.theme.accent);
+      prompt = prompt.replace(/{TEXT_COLOR}/g, config.theme.text);
+      prompt = prompt.replace(/{SLIDE_COUNT}/g, slideCount);
+      prompt = prompt.replace(/{SLIDE_COUNT_MINUS_ONE}/g, slideCount - 1);
+      
+      document.getElementById('final-prompt').value = prompt;
+      
+      // Update step indicator
+      updateStepIndicator(2);
+    }
+
+    function copyPrompt() {
+      const prompt = document.getElementById('final-prompt').value;
+      
+      navigator.clipboard.writeText(prompt).then(() => {
+        logMessage('✅ Prompt copié dans le presse-papiers', 'success');
+        
+        // Visual feedback
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '✅ Copié !';
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.classList.remove('btn-success');
+        }, 2000);
+      }).catch(err => {
+        logMessage('❌ Erreur lors de la copie', 'error');
+      });
+    }
+
+    // ============================================
+    // PARSING & VALIDATION
+    // ============================================
+    
+    function parseAndValidate() {
+      const rawOutput = document.getElementById('ai-output').value.trim();
+      
+      if (!rawOutput) {
+        logMessage('❌ Veuillez coller le JSON généré par l\'IA', 'error');
+        return;
+      }
+      
+      logMessage('🔍 Analyse du contenu en cours...', 'info');
+      updateStepIndicator(3);
+      
+      // Step 1: Extract JSON from the response
+      let jsonString = rawOutput;
+      
+      // Try to extract JSON if wrapped in text
+      const jsonMatch = rawOutput.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        jsonString = jsonMatch[0];
+      }
+      
+      // Step 2: Parse JSON
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonString);
+      } catch (error) {
+        logMessage(`❌ Erreur de parsing JSON: ${error.message}`, 'error');
+        logMessage('💡 Astuce: Assurez-vous de copier uniquement le JSON, sans texte autour', 'info');
+        return;
+      }
+      
+      // Step 3: Validate structure
+      const validationErrors = validatePresentationStructure(parsed);
+      
+      if (validationErrors.length > 0) {
+        validationErrors.forEach(error => {
+          logMessage(`❌ ${error}`, 'error');
+        });
+        return;
+      }
+      
+      // Step 4: Success - Update state
+      presentationState = parsed;
+      currentSlideIndex = 0;
+      
+      // Enable generation button
+      document.getElementById('generate-btn').disabled = false;
+      
+      // Update UI
+      updateStats();
+      renderSlideNavigator();
+      renderSlidePreview(0);
+      
+      logMessage(`✅ Parsing réussi: ${presentationState.slides.length} slides validées`, 'success');
+      updateStepIndicator(4);
+      
+      // Save to localStorage
+      saveState();
+    }
+
+    function validatePresentationStructure(data) {
+      const errors = [];
+      
+      // Check root structure
+      if (!data || typeof data !== 'object') {
+        errors.push('La structure racine doit être un objet JSON');
+        return errors;
+      }
+      
+      // Check slides array
+      if (!data.slides || !Array.isArray(data.slides)) {
+        errors.push('La propriété "slides" est requise et doit être un tableau');
+        return errors;
+      }
+      
+      if (data.slides.length === 0) {
+        errors.push('Le tableau "slides" ne peut pas être vide');
+        return errors;
+      }
+      
+      // Validate each slide
+      data.slides.forEach((slide, slideIndex) => {
+        // Check elements array
+        if (!slide.elements || !Array.isArray(slide.elements)) {
+          errors.push(`Slide ${slideIndex + 1}: La propriété "elements" est requise`);
+          return;
+        }
+        
+        // Validate each element
+        slide.elements.forEach((element, elementIndex) => {
+          // Check type
+          if (!element.type) {
+            errors.push(`Slide ${slideIndex + 1}, Élément ${elementIndex + 1}: Type manquant`);
+          } else if (!['text', 'shape', 'image', 'chart', 'table'].includes(element.type)) {
+            errors.push(`Slide ${slideIndex + 1}, Élément ${elementIndex + 1}: Type "${element.type}" non supporté`);
+          }
+          
+          // Check options
+          if (!element.options || typeof element.options !== 'object') {
+            errors.push(`Slide ${slideIndex + 1}, Élément ${elementIndex + 1}: Options manquantes`);
+          }
+        });
+      });
+      
+      return errors;
+    }
+
+    // ============================================
+    // PPTX GENERATION
+    // ============================================
+    
+    async function generatePPTX() {
+      if (!presentationState || !presentationState.slides) {
+        logMessage('❌ Aucune donnée de présentation disponible', 'error');
+        return;
+      }
+      
+      if (!isLibraryLoaded) {
+        logMessage('❌ PptxGenJS n\'est pas chargé. Veuillez intégrer la bibliothèque.', 'error');
+        return;
+      }
+      
+      logMessage('🔄 Génération du fichier PPTX...', 'info');
+      
+      try {
+        const pptx = new PptxGenJS();
+        const config = LAYOUTS[currentLayout];
+        
+        // Set presentation properties
+        pptx.author = 'PPTX Architect';
+        pptx.company = 'Generated with AI';
+        pptx.revision = '1.0';
+        pptx.subject = document.getElementById('topic').value || 'Presentation';
+        pptx.title = document.getElementById('topic').value || 'Presentation';
+        pptx.layout = 'LAYOUT_16x9';
+        
+        // Define master slide
+        pptx.defineSlideMaster({
+          title: 'MASTER_LAYOUT',
+          background: config.master.background,
+          objects: config.master.objects || [],
+          slideNumber: config.master.slideNumber
+        });
+        
+        // Generate slides
+        presentationState.slides.forEach((slideData, index) => {
+          const slide = pptx.addSlide({ 
+            masterName: slideData.masterName || 'MASTER_LAYOUT' 
+          });
+          
+          // Add elements to slide
+          slideData.elements.forEach(element => {
+            try {
+              switch (element.type) {
+                case 'text':
+                  slide.addText(element.content, element.options);
+                  break;
+                  
+                case 'shape':
+                  const shapeType = element.shape || 'rect';
+                  slide.addShape(pptx.shapes[shapeType] || shapeType, element.options);
+                  break;
+                  
+                case 'image':
+                  if (element.options && element.options.data) {
+                    slide.addImage(element.options);
+                  }
+                  break;
+                  
+                case 'chart':
+                  if (element.data) {
+                    slide.addChart(
+                      pptx.ChartType[element.chartType] || pptx.ChartType.bar,
+                      element.data,
+                      element.options
+                    );
+                  }
+                  break;
+                  
+                case 'table':
+                  if (element.rows) {
+                    slide.addTable(element.rows, element.options);
+                  }
+                  break;
+                  
+                default:
+                  console.warn(`Type d'élément non supporté: ${element.type}`);
+              }
+            } catch (error) {
+              console.error(`Erreur lors de l'ajout de l'élément:`, element, error);
+              logMessage(`⚠️ Slide ${index + 1}: Erreur sur un élément`, 'warning');
+            }
+          });
+        });
+        
+        // Generate filename
+        const topic = document.getElementById('topic').value || 'presentation';
+        const timestamp = new Date().toISOString().slice(0, 10);
+        const filename = `${slugify(topic)}_${currentLayout}_${timestamp}.pptx`;
+        
+        // Write file
+        await pptx.writeFile({ fileName: filename });
+        
+        logMessage(`✅ Fichier "${filename}" généré avec succès !`, 'success');
+        
+        // Update stats
+        document.getElementById('stat-ready').textContent = '✅';
+        
+      } catch (error) {
+        console.error('Erreur lors de la génération:', error);
+        logMessage(`❌ Erreur: ${error.message}`, 'error');
+      }
+    }
+
+    // ============================================
+    // PREVIEW RENDERING
+    // ============================================
+    
+    function renderSlidePreview(index) {
+      if (!presentationState || !presentationState.slides[index]) {
+        return;
+      }
+      
+      currentSlideIndex = index;
+      const slideData = presentationState.slides[index];
+      const preview = document.getElementById('preview-slide');
+      const config = LAYOUTS[currentLayout];
+      
+      // Clear preview
+      preview.innerHTML = '';
+      
+      // Set background
+      preview.style.background = `#${config.theme.background}`;
+      
+      // Render elements
+      slideData.elements.forEach(element => {
+        if (element.type === 'text') {
+          const div = document.createElement('div');
+          div.className = 'slide-element';
+          
+          // Apply positioning
+          const options = element.options || {};
+          div.style.left = convertToPixels(options.x, preview.offsetWidth);
+          div.style.top = convertToPixels(options.y, preview.offsetHeight);
+          div.style.width = convertToPixels(options.w, preview.offsetWidth);
+          div.style.height = convertToPixels(options.h, preview.offsetHeight);
+          
+          // Apply text styling
+          if (Array.isArray(element.content)) {
+            // Handle bullet points
+            const ul = document.createElement('ul');
+            ul.style.margin = '0';
+            ul.style.paddingLeft = '20px';
+            ul.style.listStyle = 'disc';
+            
+            element.content.forEach(item => {
+              const li = document.createElement('li');
+              li.textContent = item.text || item;
+              if (item.options && item.options.indentLevel) {
+                li.style.marginLeft = `${item.options.indentLevel * 20}px`;
+              }
+              ul.appendChild(li);
+            });
+            
+            div.appendChild(ul);
+          } else {
+            // Handle regular text
+            div.textContent = element.content;
+          }
+          
+          // Apply text properties
+          div.style.fontSize = `${(options.fontSize || 18) * 0.6}px`;
+          div.style.fontWeight = options.bold ? 'bold' : 'normal';
+          div.style.fontStyle = options.italic ? 'italic' : 'normal';
+          div.style.textAlign = options.align || 'left';
+          div.style.color = `#${options.color || config.theme.text}`;
+          div.style.fontFamily = options.fontFace || config.font;
+          
+          preview.appendChild(div);
+          
+        } else if (element.type === 'shape') {
+          const div = document.createElement('div');
+          div.className = 'slide-element';
+          
+          const options = element.options || {};
+          div.style.left = convertToPixels(options.x, preview.offsetWidth);
+          div.style.top = convertToPixels(options.y, preview.offsetHeight);
+          div.style.width = convertToPixels(options.w, preview.offsetWidth);
+          div.style.height = convertToPixels(options.h, preview.offsetHeight);
+          
+          // Apply shape styling
+          if (options.fill) {
+            div.style.backgroundColor = `#${options.fill.color || config.theme.accent}`;
+            if (options.fill.transparency) {
+              div.style.opacity = 1 - (options.fill.transparency / 100);
+            }
+          }
+          
+          if (element.shape === 'rect') {
+            div.style.borderRadius = '0';
+          } else if (element.shape === 'ellipse') {
+            div.style.borderRadius = '50%';
+          }
+          
+          preview.appendChild(div);
+        }
+      });
+      
+      // Update navigator
+      updateSlideNavigator(index);
+    }
+
+    function renderSlideNavigator() {
+      if (!presentationState || !presentationState.slides) {
+        return;
+      }
+      
+      const navigator = document.getElementById('slide-navigator');
+      navigator.innerHTML = '';
+      
+      presentationState.slides.forEach((_, index) => {
+        const thumb = document.createElement('div');
+        thumb.className = 'slide-thumb';
+        thumb.textContent = index + 1;
+        thumb.onclick = () => renderSlidePreview(index);
+        
+        if (index === currentSlideIndex) {
+          thumb.classList.add('active');
+        }
+        
+        navigator.appendChild(thumb);
+      });
+    }
+
+    function updateSlideNavigator(activeIndex) {
+      document.querySelectorAll('.slide-thumb').forEach((thumb, index) => {
+        thumb.classList.toggle('active', index === activeIndex);
+      });
+    }
+
+    // ============================================
+    // UI HELPERS
+    // ============================================
+    
+    function selectLayout(layout) {
+      currentLayout = layout;
+      
+      // Update UI
+      document.querySelectorAll('.layout-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.layout === layout);
+      });
+      
+      // Rebuild prompt
+      buildPrompt();
+      
+      // Re-render preview if data exists
+      if (presentationState) {
+        renderSlidePreview(currentSlideIndex);
+      }
+    }
+
+    function updateStepIndicator(step) {
+      for (let i = 1; i <= 4; i++) {
+        const stepElement = document.getElementById(`step-${i}`);
+        if (i < step) {
+          stepElement.classList.remove('active');
+          stepElement.classList.add('completed');
+        } else if (i === step) {
+          stepElement.classList.add('active');
+          stepElement.classList.remove('completed');
+        } else {
+          stepElement.classList.remove('active', 'completed');
+        }
+      }
+    }
+
+    function updateStats() {
+      if (!presentationState) {
+        document.getElementById('stat-slides').textContent = '0';
+        document.getElementById('stat-elements').textContent = '0';
+        document.getElementById('stat-ready').textContent = '❌';
+        return;
+      }
+      
+      const slideCount = presentationState.slides.length;
+      const elementCount = presentationState.slides.reduce(
+        (total, slide) => total + (slide.elements ? slide.elements.length : 0),
+        0
+      );
+      
+      document.getElementById('stat-slides').textContent = slideCount;
+      document.getElementById('stat-elements').textContent = elementCount;
+      document.getElementById('stat-ready').textContent = '✅';
+      
+      // Update preview status
+      document.getElementById('preview-status').textContent = `${slideCount} slides`;
+      document.getElementById('preview-status').className = 'status-badge status-ready';
+    }
+
+    function logMessage(message, type = 'info') {
+      const log = document.getElementById('validation-log');
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type} slide-in`;
+      
+      // Add icon based on type
+      const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+      };
+      
+      entry.innerHTML = `
+        <span class="log-icon">${icons[type] || icons.info}</span>
+        <span>${message}</span>
+        <span style="margin-left: auto; font-size: 11px; color: var(--muted);">
+          ${new Date().toLocaleTimeString()}
+        </span>
+      `;
+      
+      // Insert at the beginning
+      log.insertBefore(entry, log.firstChild);
+      
+      // Keep only last 20 messages
+      while (log.children.length > 20) {
+        log.removeChild(log.lastChild);
+      }
+    }
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    
+    function convertToPixels(value, containerSize) {
+      if (!value) return '0px';
+      
+      // If it's already a pixel value
+      if (typeof value === 'string' && value.endsWith('px')) {
+        return value;
+      }
+      
+      // If it's a percentage
+      if (typeof value === 'string' && value.endsWith('%')) {
+        const percent = parseFloat(value) / 100;
+        return `${containerSize * percent}px`;
+      }
+      
+      // If it's a number (assuming inches, convert to approximate pixels)
+      if (typeof value === 'number') {
+        // Assuming 96 DPI for screen
+        return `${value * 96}px`;
+      }
+      
+      // Default
+      return value;
+    }
+
+    function slugify(text) {
+      return text
+        .toString()
+        .toLowerCase()
+        .trim()
+        .replace(/[\s\W-]+/g, '_')
+        .replace(/^-+|-+$/g, '');
+    }
+
+    function loadExample() {
+      const exampleJSON = {
+        slides: [
+          {
+            masterName: "MASTER_LAYOUT",
+            elements: [
+              {
+                type: "text",
+                content: "Présentation Exemple",
+                options: {
+                  x: "10%",
+                  y: "35%",
+                  w: "80%",
+                  h: "20%",
+                  fontSize: 44,
+                  bold: true,
+                  align: "center",
+                  color: "003366",
+                  fontFace: "Calibri"
+                }
+              },
+              {
+                type: "text",
+                content: "Générée avec PPTX Architect",
+                options: {
+                  x: "10%",
+                  y: "55%",
+                  w: "80%",
+                  h: "10%",
+                  fontSize: 24,
+                  align: "center",
+                  color: "666666",
+                  fontFace: "Calibri"
+                }
+              }
+            ]
+          },
+          {
+            masterName: "MASTER_LAYOUT",
+            elements: [
+              {
+                type: "text",
+                content: "Points Clés",
+                options: {
+                  x: "5%",
+                  y: "10%",
+                  w: "90%",
+                  h: "15%",
+                  fontSize: 36,
+                  bold: true,
+                  color: "003366",
+                  fontFace: "Calibri"
+                }
+              },
+              {
+                type: "text",
+                content: [
+                  { text: "Premier point important", options: { bullet: true } },
+                  { text: "Deuxième élément clé", options: { bullet: true } },
+                  { text: "Troisième aspect crucial", options: { bullet: true } }
+                ],
+                options: {
+                  x: "5%",
+                  y: "30%",
+                  w: "90%",
+                  h: "50%",
+                  fontSize: 18,
+                  color: "333333",
+                  fontFace: "Calibri"
+                }
+              }
+            ]
+          }
+        ]
+      };
+      
+      document.getElementById('ai-output').value = JSON.stringify(exampleJSON, null, 2);
+      logMessage('📝 Exemple chargé. Cliquez sur "Analyser & Valider" pour continuer.', 'info');
+    }
+
+    function clearAll() {
+      if (confirm('Êtes-vous sûr de vouloir tout réinitialiser ?')) {
+        // Clear form
+        document.getElementById('topic').value = '';
+        document.getElementById('slide-count').value = '5';
+        document.getElementById('ai-output').value = '';
+        
+        // Reset state
+        presentationState = null;
+        currentSlideIndex = 0;
+        currentLayout = 'corporate';
+        
+        // Reset UI
+        selectLayout('corporate');
+        document.getElementById('generate-btn').disabled = true;
+        document.getElementById('preview-slide').innerHTML = `
+          <div class="preview-empty">
+            <div>
+              <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+              <div style="color: #94a3b8;">
+                Votre présentation apparaîtra ici<br>
+                <span style="font-size: 12px;">Format 16:9 • PowerPoint natif</span>
+              </div>
+            </div>
+          </div>
+        `;
+        document.getElementById('slide-navigator').innerHTML = '';
+        
+        // Clear stats
+        updateStats();
+        
+        // Reset steps
+        updateStepIndicator(1);
+        
+        // Clear localStorage
+        localStorage.removeItem('pptx_architect_state');
+        
+        // Build fresh prompt
+        buildPrompt();
+        
+        logMessage('🔄 Application réinitialisée', 'info');
+      }
+    }
+
+    // ============================================
+    // STATE MANAGEMENT
+    // ============================================
+    
+    function saveState() {
+      const state = {
+        version: APP_VERSION,
+        timestamp: Date.now(),
+        topic: document.getElementById('topic').value,
+        slideCount: document.getElementById('slide-count').value,
+        layout: currentLayout,
+        presentationState: presentationState,
+        currentSlideIndex: currentSlideIndex
+      };
+      
+      try {
+        localStorage.setItem('pptx_architect_state', JSON.stringify(state));
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde:', error);
+      }
+    }
+
+    function restoreState() {
+      try {
+        const savedState = localStorage.getItem('pptx_architect_state');
+        if (!savedState) return;
+        
+        const state = JSON.parse(savedState);
+        
+        // Check version compatibility
+        if (state.version !== APP_VERSION) {
+          console.warn('Version différente détectée, état non restauré');
+          return;
+        }
+        
+        // Restore form values
+        if (state.topic) document.getElementById('topic').value = state.topic;
+        if (state.slideCount) document.getElementById('slide-count').value = state.slideCount;
+        if (state.layout) {
+          currentLayout = state.layout;
+          selectLayout(state.layout);
+        }
+        
+        // Restore presentation state
+        if (state.presentationState) {
+          presentationState = state.presentationState;
+          currentSlideIndex = state.currentSlideIndex || 0;
+          
+          // Update UI
+          document.getElementById('generate-btn').disabled = false;
+          updateStats();
+          renderSlideNavigator();
+          renderSlidePreview(currentSlideIndex);
+          
+          logMessage('✅ Session précédente restaurée', 'success');
+        }
+        
+      } catch (error) {
+        console.error('Erreur lors de la restauration:', error);
+      }
+    }
+
+    function setupAutoSave() {
+      // Auto-save every 30 seconds if there's data
+      setInterval(() => {
+        if (presentationState) {
+          saveState();
+        }
+      }, 30000);
+    }
+  </script>
+</body>
+</html>
